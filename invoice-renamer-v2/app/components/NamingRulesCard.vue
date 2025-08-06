@@ -660,6 +660,7 @@ const initSortable = async () => {
               .arrow-icon {
                 color: #999;
                 font-size: 14px;
+                flex-shrink: 0;
               }
 
               .new-name {
@@ -672,6 +673,28 @@ const initSortable = async () => {
                 text-overflow: ellipsis;
                 white-space: nowrap;
                 font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+              }
+
+              /* 当容器宽度不足时，自动切换为垂直布局 */
+              @media (max-width: 600px) {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+
+                .original-name,
+                .new-name {
+                  white-space: normal;
+                  word-break: break-all;
+                  overflow: visible;
+                  text-overflow: unset;
+                  width: 100%;
+                  flex: none;
+                }
+
+                .arrow-icon {
+                  align-self: center;
+                  transform: rotate(90deg);
+                }
               }
             }
           }
@@ -796,6 +819,15 @@ const initSortable = async () => {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 8px;
+
+                .original-name,
+                .new-name {
+                  white-space: normal;
+                  word-break: break-all;
+                  overflow: visible;
+                  text-overflow: unset;
+                  width: 100%;
+                }
 
                 .arrow-icon {
                   align-self: center;

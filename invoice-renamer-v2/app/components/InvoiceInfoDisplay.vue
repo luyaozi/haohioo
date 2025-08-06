@@ -14,31 +14,34 @@
             </el-tag>
           </div>
           <div class="flex items-center gap-3">
-            <el-radio-group v-model="viewMode" size="small">
-              <el-radio-button value="table">
-                <el-icon><Grid /></el-icon>
-                表格视图
-              </el-radio-button>
-              <el-radio-button value="card">
-                <el-icon><Postcard /></el-icon>
-                卡片视图
-              </el-radio-button>
-            </el-radio-group>
-            <el-button
-              type="primary"
-              size="small"
-              :loading="parsing"
-              @click="$emit('parse-all-files')"
-            >
-              <el-icon><Refresh /></el-icon>
-              重新解析
-            </el-button>
+            <!-- 桌面端显示视图切换和重新解析按钮 -->
+            <div class="desktop-controls">
+              <el-radio-group v-model="viewMode" size="small">
+                <el-radio-button value="table">
+                  <el-icon><Grid /></el-icon>
+                  表格视图
+                </el-radio-button>
+                <el-radio-button value="card">
+                  <el-icon><Postcard /></el-icon>
+                  卡片视图
+                </el-radio-button>
+              </el-radio-group>
+              <el-button
+                type="primary"
+                size="small"
+                :loading="parsing"
+                @click="$emit('parse-all-files')"
+              >
+                <el-icon><Refresh /></el-icon>
+                重新解析
+              </el-button>
+            </div>
           </div>
         </div>
       </template>
 
-      <!-- 表格视图 -->
-      <div v-if="viewMode === 'table'" class="table-view">
+      <!-- 表格视图 - 仅在桌面端显示 -->
+      <div v-if="viewMode === 'table'" class="table-view desktop-only">
         <div class="table-wrapper">
           <el-table
             :data="invoiceData"
@@ -201,8 +204,8 @@
         </div>
       </div>
 
-      <!-- 卡片视图 -->
-      <div v-else class="card-view">
+      <!-- 卡片视图 - 移动端强制显示 -->
+      <div v-if="viewMode === 'card' || isMobile()" class="card-view">
         <div
           class="cards-grid"
           v-loading="parsing"
@@ -269,47 +272,29 @@
                 <el-tag v-else type="warning" size="small">未识别</el-tag>
               </div>
 
-              <!-- 价税合计 - 优化样式 -->
-              <div class="amount-section">
-                <div class="amount-container">
-                  <div class="amount-label">价税合计</div>
-                  <div v-if="invoice.totalAmount" class="amount-display">
-                    <span class="currency-symbol">¥</span>
-                    <span class="amount-number">{{ invoice.totalAmount }}</span>
-                  </div>
-                  <el-tag
-                    v-else
-                    type="warning"
-                    size="small"
-                    class="amount-error"
-                    >未识别</el-tag
-                  >
-                </div>
+              <!-- 价税合计 - 正常一行展示 -->
+              <div class="detail-item amount-item">
+                <label>价税合计:</label>
+                <span v-if="invoice.totalAmount" class="amount-value">
+                  ¥{{ invoice.totalAmount }}
+                </span>
+                <el-tag v-else type="warning" size="small">未识别</el-tag>
+              </div>
 
-                <!-- 展开详细信息按钮 - 移到右侧 -->
-                <div class="expand-toggle">
-                  <el-button
-                    type="info"
-                    size="small"
-                    text
-                    @click="toggleCardExpand(invoice.fileName)"
-                    class="expand-btn"
-                  >
-                    <el-icon class="expand-icon">
-                      <ArrowDown
-                        v-if="!expandedCards.includes(invoice.fileName)"
-                      />
-                      <ArrowUp v-else />
-                    </el-icon>
-                    <span class="expand-text">
-                      {{
-                        expandedCards.includes(invoice.fileName)
-                          ? "收起"
-                          : "详情"
-                      }}
-                    </span>
-                  </el-button>
-                </div>
+              <!-- 展开详细信息按钮 - 仅在未展开时显示 -->
+              <div v-if="!expandedCards.includes(invoice.fileName)" class="expand-section">
+                <el-button
+                  type="info"
+                  size="small"
+                  text
+                  @click="toggleCardExpand(invoice.fileName)"
+                  class="expand-btn"
+                >
+                  <el-icon class="expand-icon">
+                    <ArrowDown />
+                  </el-icon>
+                  <span class="expand-text">详情</span>
+                </el-button>
               </div>
 
               <!-- 展开的详细信息 -->
@@ -345,6 +330,22 @@
                     <label>项目名称:</label>
                     <span>{{ invoice.itemName || "未识别" }}</span>
                   </div>
+                </div>
+
+                <!-- 收起按钮 - 在展开内容的最下面 -->
+                <div class="collapse-section">
+                  <el-button
+                    type="info"
+                    size="small"
+                    text
+                    @click="toggleCardExpand(invoice.fileName)"
+                    class="expand-btn"
+                  >
+                    <el-icon class="expand-icon">
+                      <ArrowUp />
+                    </el-icon>
+                    <span class="expand-text">收起</span>
+                  </el-button>
                 </div>
               </div>
             </div>
@@ -417,8 +418,14 @@ const emit = defineEmits<{
   "remove-file": [identifier: number | string]
 }>()
 
+// 检测是否为移动端设备
+const isMobile = () => {
+  if (typeof window === 'undefined') return false
+  return window.innerWidth <= 768
+}
+
 // 响应式数据
-const viewMode = ref<"table" | "card">("card")
+const viewMode = ref<"table" | "card">(isMobile() ? "card" : "card")
 const expandedCards = ref<string[]>([])
 
 // 计算属性
@@ -822,111 +829,58 @@ const handleRemoveFile = (identifier: number | string) => {
   flex: 1;
 }
 
-/* 价税合计区域样式 */
-.amount-section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
-  padding: 8px 12px;
-  background: linear-gradient(
-    135deg,
-    rgba(107, 33, 168, 0.04) 0%,
-    rgba(107, 33, 168, 0.06) 100%
-  );
-  border-radius: 8px;
-  border: 1px solid rgba(107, 33, 168, 0.12);
-  position: relative;
-  overflow: hidden;
+/* 价税合计样式 - 正常一行展示 */
+.amount-item {
+  margin-top: 8px;
+  margin-bottom: 12px;
 }
 
-.amount-section::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(
-    90deg,
-    rgba(107, 33, 168, 0.3),
-    rgba(107, 33, 168, 0.4)
-  );
-}
-
-.amount-container {
-  flex: 1;
-}
-
-.amount-label {
-  font-size: 11px;
-  color: rgba(107, 33, 168, 0.7);
-  font-weight: 500;
-  margin-bottom: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.amount-display {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-}
-
-.currency-symbol {
-  font-size: 14px;
-  color: rgba(107, 33, 168, 0.8);
+.amount-value {
+  font-size: 16px;
   font-weight: 600;
+  color: #6b21a8;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.amount-number {
-  font-size: 20px;
-  font-weight: 700;
-  color: rgb(107, 33, 168);
-  line-height: 1;
-  font-family:
-    "SF Pro Display",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
-}
-
-.amount-error {
-  margin-top: 4px;
-}
-
-/* 展开按钮样式 */
-.expand-toggle {
-  flex-shrink: 0;
-  margin-left: 12px;
+/* 展开按钮区域样式 */
+.expand-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--el-border-color-lighter);
 }
 
 .expand-btn {
-  padding: 4px 8px !important;
-  border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.6) !important;
+  padding: 6px 12px !important;
   border: none !important;
-  transition: all 0.3s ease !important;
-  backdrop-filter: blur(10px);
+  background: transparent !important;
+  color: var(--el-text-color-regular) !important;
+  transition: color 0.3s ease !important;
 }
 
 .expand-btn:hover {
-  background: rgba(107, 33, 168, 0.08) !important;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(107, 33, 168, 0.1);
+  background: transparent !important;
+  color: #6b21a8 !important;
 }
 
 .expand-icon {
-  font-size: 10px;
-  color: rgba(107, 33, 168, 0.7);
+  font-size: 12px;
   transition: transform 0.3s ease;
 }
 
 .expand-text {
-  font-size: 9px;
-  color: rgba(107, 33, 168, 0.7);
-  font-weight: 500;
-  margin-left: 3px;
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+/* 收起按钮区域样式 */
+.collapse-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--el-border-color-lighter);
 }
 
 .expanded-details {
@@ -1007,8 +961,25 @@ const handleRemoveFile = (identifier: number | string) => {
   line-height: 1.4;
 }
 
+/* 桌面控制按钮样式 */
+.desktop-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
+  /* 在移动端隐藏桌面控制按钮 */
+  .desktop-controls {
+    display: none;
+  }
+
+  /* 在移动端隐藏表格视图 */
+  .desktop-only {
+    display: none !important;
+  }
+
   .cards-grid {
     grid-template-columns: 1fr;
     gap: 16px;
