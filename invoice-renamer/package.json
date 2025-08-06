@@ -1,0 +1,26 @@
+{
+  "name": "invoice-renamer",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "发票批量重命名工具",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build && node scripts/post-build.js",
+    "build:only": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.1.0",
+    "element-plus": "^2.4.1",
+    "jszip": "^3.10.1",
+    "pdfjs-dist": "^3.11.174",
+    "sortablejs": "^1.15.6",
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.4.0",
+    "sass": "^1.89.2",
+    "terser": "^5.43.1",
+    "vite": "^4.4.9"
+  }
+}

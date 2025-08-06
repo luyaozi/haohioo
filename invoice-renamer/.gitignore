@@ -1,0 +1,17 @@
+node_modules
+.DS_Store
+dist
+dist-ssr
+/dist*
+/design*
+pnpm-debug
+auto-*.d.ts
+.idea
+.history
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 确保 public 目录中的 worker 文件被包含
+!public/
+!public/pdf.worker.js
