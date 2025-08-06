@@ -160,6 +160,8 @@ export default defineNuxtConfig({
   // colorMode
   colorMode: {
     classSuffix: '',
+    preference: 'light', // 默认使用浅色模式
+    fallback: 'light',   // 回退到浅色模式
   },
 
   future: {

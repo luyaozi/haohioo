@@ -228,6 +228,7 @@ const props = defineProps<Props>()
 
 // Emits
 const emit = defineEmits<{
+  "download-all": []
   "download-single": [result: RenameResult]
   "preview-file": [result: RenameResult]
   "remove-result": [index: number]
@@ -256,6 +257,10 @@ const totalAmount = computed(() => {
 })
 
 // 方法
+const downloadAll = () => {
+  emit("download-all")
+}
+
 const downloadSingle = (result: RenameResult) => {
   emit("download-single", result)
 }

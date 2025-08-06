@@ -1,21 +1,29 @@
 <script setup lang="ts">
 const color = useColorMode()
 
+// 强制设置为浅色模式
+color.preference = 'light'
+
 useHead({
   meta: [{
     id: 'theme-color',
     name: 'theme-color',
-    content: () => color.value === 'dark' ? '#222222' : '#ffffff',
+    content: '#ffffff', // 固定为白色主题
   }],
 })
 
+// 禁用深色模式切换
 function toggleDark() {
-  color.preference = color.value === 'dark' ? 'light' : 'dark'
+  // 不执行任何操作，保持浅色模式
+  return
 }
 </script>
 
 <template>
-  <button class="inline-flex justify-center items-center" @click="toggleDark">
-    <div class="i-ri-sun-line dark:i-ri-moon-line" />
-  </button>
+  <!-- 隐藏深色模式切换按钮 -->
+  <div style="display: none;">
+    <button class="inline-flex justify-center items-center" @click="toggleDark">
+      <div class="i-ri-sun-line" />
+    </button>
+  </div>
 </template>

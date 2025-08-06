@@ -55,7 +55,7 @@
       v-if="renameResults.length > 0"
       :rename-results="renameResults"
       :is-downloading="false"
-      @download-all-files="downloadAllFiles"
+      @download-all="downloadAllFiles"
       @download-single="downloadSingleFile"
       @preview-file="previewFile"
       @remove-result="removeResult"

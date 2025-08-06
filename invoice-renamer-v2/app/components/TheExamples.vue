@@ -3,17 +3,18 @@
 const hello = () => ElMessage.info("hello world");
 const helloSuccess = () => ElMessage.success("hello world");
 
+// 强制浅色模式，禁用深色模式切换
 const color = useColorMode();
-const colorMode = computed({
-  get: () => color.value === 'dark',
-  set: () => (color.preference = (color.value === 'dark' ? 'light' : 'dark')),
-});
+color.preference = 'light';
 </script>
 
 <template>
-  <ClientOnly>
+  <!-- 隐藏深色模式切换开关 -->
+  <!-- <ClientOnly>
     <el-switch v-model="colorMode" inline-prompt active-text="dark" inactive-text="light" size="large"/>
-  </ClientOnly>
+  </ClientOnly> -->
+
+  <div></div>
 
   <br >
 
