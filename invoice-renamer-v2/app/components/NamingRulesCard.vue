@@ -48,6 +48,7 @@
                 >
                   <el-option label="字段" value="field" />
                   <el-option label="文本" value="text" />
+                  <el-option label="日期" value="date" />
                 </el-select>
               </div>
 
@@ -579,7 +580,7 @@ const initSortable = async () => {
     .full-preview {
       margin-top: 24px;
       padding: 20px;
-      background: linear-gradient(135deg, #f0f2ff 0%, #e8f4fd 100%);
+      background: linear-gradient(135deg, #f0f2ff 0%, #e3d5f1 100%);
       border-radius: 8px;
       border: 1px solid #d9e3ff;
 

@@ -282,7 +282,10 @@
               </div>
 
               <!-- 展开详细信息按钮 - 仅在未展开时显示 -->
-              <div v-if="!expandedCards.includes(invoice.fileName)" class="expand-section">
+              <div
+                v-if="!expandedCards.includes(invoice.fileName)"
+                class="expand-section flex"
+              >
                 <el-button
                   type="info"
                   size="small"
@@ -420,7 +423,7 @@ const emit = defineEmits<{
 
 // 检测是否为移动端设备
 const isMobile = () => {
-  if (typeof window === 'undefined') return false
+  if (typeof window === "undefined") return false
   return window.innerWidth <= 768
 }
 
@@ -577,7 +580,7 @@ const handleRemoveFile = (identifier: number | string) => {
 }
 
 :deep(.el-table .el-table__expanded-cell) {
-  padding: 20px;
+  padding: 0px;
   background-color: #fafbfc;
 }
 
@@ -634,22 +637,8 @@ const handleRemoveFile = (identifier: number | string) => {
   /* margin: 10px 0; */
 }
 
-.expand-section {
-  margin-bottom: 20px;
-}
-
 .expand-section:last-child {
   margin-bottom: 0;
-}
-
-.expand-section h4 {
-  margin: 0 0 12px 0;
-  color: var(--el-text-color-primary);
-  font-size: 14px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .info-grid {
@@ -839,16 +828,29 @@ const handleRemoveFile = (identifier: number | string) => {
   font-size: 16px;
   font-weight: 600;
   color: #6b21a8;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 /* 展开按钮区域样式 */
 .expand-section {
-  display: flex;
+  /* display: flex; */
+  margin-bottom: 20px;
   justify-content: center;
   margin-top: 8px;
   padding-top: 8px;
-  border-top: 1px solid var(--el-border-color-lighter);
+  /* border-top: 1px solid var(--el-border-color-lighter); */
+  h4 {
+    margin: 0 0 12px 0;
+    color: var(--el-text-color-primary);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  &:last-child {
+    margin-bottom: 0;
+  }
 }
 
 .expand-btn {

@@ -251,7 +251,9 @@ const totalAmount = computed(() => {
   return props.renameResults
     .filter((result) => !result.error && result.totalAmount)
     .reduce((total, result) => {
-      const amount = parseFloat(result.totalAmount?.replace(/[^\d.-]/g, '') || '0')
+      const amount = parseFloat(
+        result.totalAmount?.replace(/[^\d.-]/g, "") || "0"
+      )
       return total + (isNaN(amount) ? 0 : amount)
     }, 0)
 })
@@ -303,7 +305,7 @@ const formatDate = (date: Date | undefined): string => {
 // 格式化金额
 const formatAmount = (amount: number): string => {
   if (amount === 0) return "¥0.00"
-  
+
   return new Intl.NumberFormat("zh-CN", {
     style: "currency",
     currency: "CNY",
@@ -389,8 +391,8 @@ const formatAmount = (amount: number): string => {
         }
 
         &:hover {
-          background: #f0f9ff;
-          border-color: #52c41a;
+          background: #a0acf11c;
+          border-color: #a0acf1;
         }
 
         &.has-error {
@@ -407,7 +409,7 @@ const formatAmount = (amount: number): string => {
           margin-top: 4px;
 
           .success-icon {
-            color: #52c41a;
+            color: #a0acf1;
             font-size: 20px;
           }
 
