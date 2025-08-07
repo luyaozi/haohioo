@@ -94,6 +94,12 @@
                           row.itemName || "未识别"
                         }}</span>
                       </div>
+                      <div class="info-item">
+                        <label>备注信息:</label>
+                        <span class="w-full">{{
+                          row.remarks || "无备注"
+                        }}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -140,7 +146,7 @@
                 <span v-if="row.invoiceNumber" class="invoice-number">{{
                   row.invoiceNumber
                 }}</span>
-                <el-tag v-else type="warning" size="small">未识别</el-tag>
+                <el-text v-else type="warning" size="small">未识别</el-text>
               </template>
             </el-table-column>
 
@@ -155,7 +161,7 @@
                 <span v-if="row.invoiceDate" class="invoice-date">{{
                   row.invoiceDate
                 }}</span>
-                <el-tag v-else type="warning" size="small">未识别</el-tag>
+                <el-text v-else type="warning" size="small">未识别</el-text>
               </template>
             </el-table-column>
 
@@ -171,7 +177,25 @@
                 <span v-if="row.totalAmount" class="total-amount"
                   >¥{{ row.totalAmount }}</span
                 >
-                <el-tag v-else type="warning" size="small">未识别</el-tag>
+                <el-text v-else type="warning" size="small">未识别</el-text>
+              </template>
+            </el-table-column>
+
+            <!-- 解析状态 -->
+            <el-table-column
+              prop="parseStatus"
+              label="解析状态"
+              min-width="100"
+              sortable
+            >
+              <template #default="{ row }">
+                <el-text
+                  :type="getStatusTagType(row.parseStatus)"
+                  size="small"
+                  :title="getErrorTooltip(row)"
+                >
+                  {{ getStatusText(row.parseStatus) }}
+                </el-text>
               </template>
             </el-table-column>
 
@@ -216,6 +240,23 @@
             :key="invoice.fileName"
             class="invoice-card"
           >
+            <!-- 解析状态角标 -->
+            <div
+              class="status-badge-triangle"
+              :class="`status-${invoice.parseStatus || 'success'}`"
+              :title="getErrorTooltip(invoice)"
+            >
+              <span class="status-icon">
+                <template v-if="invoice.parseStatus === 'success'"
+                  >成功</template
+                >
+                <template v-else-if="invoice.parseStatus === 'warning'"
+                  >警告</template
+                >
+                <template v-else>失败</template>
+              </span>
+            </div>
+
             <!-- 发票预览图 -->
             <div
               class="invoice-preview"
@@ -256,12 +297,12 @@
                 </div>
               </div>
 
-              <div class="detail-item">
+              <div class="detail-item mb-5px">
                 <label>发票号码:</label>
                 <span v-if="invoice.invoiceNumber" class="value">{{
                   invoice.invoiceNumber
                 }}</span>
-                <el-tag v-else type="warning" size="small">未识别</el-tag>
+                <el-text v-else type="warning" size="small">未识别</el-text>
               </div>
 
               <div class="detail-item mb-5px">
@@ -269,7 +310,7 @@
                 <span v-if="invoice.invoiceDate" class="value">{{
                   invoice.invoiceDate
                 }}</span>
-                <el-tag v-else type="warning" size="small">未识别</el-tag>
+                <el-text v-else type="warning" size="small">未识别</el-text>
               </div>
 
               <!-- 价税合计 - 正常一行展示 -->
@@ -278,13 +319,14 @@
                 <span v-if="invoice.totalAmount" class="amount-value">
                   ¥{{ invoice.totalAmount }}
                 </span>
-                <el-tag v-else type="warning" size="small">未识别</el-tag>
+                <el-text v-else type="warning" size="small">未识别</el-text>
               </div>
 
               <!-- 展开详细信息按钮 - 仅在未展开时显示 -->
               <div
                 v-if="!expandedCards.includes(invoice.fileName)"
                 class="expand-section flex"
+                style="border-top: 1px solid var(--el-border-color-lighter)"
               >
                 <el-button
                   type="info"
@@ -306,10 +348,21 @@
                 class="expanded-details"
               >
                 <div class="expanded-grid">
+                  <!-- 解析状态 -->
+                  <div class="expanded-item">
+                    <label>解析状态:</label>
+                    <span>
+                      <el-text :type="getStatusTagType(invoice.parseStatus)">
+                        {{ getStatusText(invoice.parseStatus) }}
+                      </el-text>
+                    </span>
+                  </div>
+
                   <div class="expanded-item">
                     <label>购买方名称:</label>
                     <span>{{ invoice.buyerName || "未识别" }}</span>
                   </div>
+
                   <div class="expanded-item">
                     <label>购买方税号:</label>
                     <span>{{ invoice.buyerTaxId || "未识别" }}</span>
@@ -332,6 +385,20 @@
                   <div class="expanded-item">
                     <label>项目名称:</label>
                     <span>{{ invoice.itemName || "未识别" }}</span>
+                  </div>
+
+                  <div class="expanded-item">
+                    <label>备注信息:</label>
+                    <el-tooltip
+                      v-if="shouldShowRemarksTooltip(invoice.remarks)"
+                      :content="invoice.remarks"
+                      placement="top"
+                      :show-after="500"
+                      effect="dark"
+                    >
+                      <span class="remarks-text truncated">{{ invoice.remarks }}</span>
+                    </el-tooltip>
+                    <span v-else class="remarks-text">{{ invoice.remarks || "无备注" }}</span>
                   </div>
                 </div>
 
@@ -384,6 +451,7 @@ import {
   ArrowDown,
   ArrowUp,
 } from "@element-plus/icons-vue"
+import type { InvoiceData } from "~/types/invoice"
 
 // Props
 interface InvoiceData {
@@ -402,9 +470,12 @@ interface InvoiceData {
   payee: string
   reviewer: string
   itemName: string
+  remarks: string
   file: File
   parseMethod: string
   fullText: string
+  parseStatus: "success" | "warning" | "failed"
+  parseErrors?: string[]
 }
 
 const props = defineProps<{
@@ -480,6 +551,60 @@ const handleRemoveFile = (identifier: number | string) => {
     props.invoiceData.map((item) => item.fileName)
   )
   emit("remove-file", identifier)
+}
+
+// 解析状态相关辅助函数
+const getStatusTagType = (status: string) => {
+  switch (status) {
+    case "success":
+      return "success"
+    case "warning":
+      return "warning"
+    case "failed":
+      return "danger"
+    default:
+      return "info"
+  }
+}
+
+const getStatusText = (status: string) => {
+  switch (status) {
+    case "success":
+      return "解析成功"
+    case "warning":
+      return "部分解析"
+    case "failed":
+      return "解析失败"
+    default:
+      return "未知状态"
+  }
+}
+
+const getErrorTooltip = (invoice: InvoiceData) => {
+  if (invoice.parseErrors && invoice.parseErrors.length > 0) {
+    return invoice.parseErrors.join(", ")
+  }
+
+  switch (invoice.parseStatus) {
+    case "success":
+      return "解析成功，所有关键信息已正确识别"
+    case "warning":
+      return "解析完成但存在问题：可能是文件质量不高、部分字段识别失败或内容格式异常"
+    case "failed":
+      return "解析失败：可能是文件质量过低、扫描件无法识别、PDF损坏或格式不支持"
+    default:
+      return "解析状态未知，请重新解析文件"
+  }
+}
+
+// 判断是否需要显示备注tooltip
+const shouldShowRemarksTooltip = (remarks: string) => {
+  if (!remarks || remarks === "无备注") {
+    return false
+  }
+  
+  // 如果备注包含换行符或长度超过25个字符，则显示tooltip
+  return remarks.includes('\n') || remarks.length > 25
 }
 </script>
 
@@ -698,6 +823,63 @@ const handleRemoveFile = (identifier: number | string) => {
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  position: relative;
+}
+
+/* 三角形状态角标 */
+.status-badge-triangle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50px;
+  height: 50px;
+  z-index: 10;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.status-badge-triangle::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 50px 50px 0;
+}
+
+/* 不同状态的颜色 */
+.status-badge-triangle.status-success::before {
+  border-color: transparent #67c23a transparent transparent;
+}
+
+.status-badge-triangle.status-warning::before {
+  border-color: transparent #e6a23c transparent transparent;
+}
+
+.status-badge-triangle.status-failed::before {
+  border-color: transparent #f56c6c transparent transparent;
+}
+
+/* 状态图标 */
+.status-icon {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  transform: rotate(45deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
+  line-height: 1;
+  z-index: 11;
 }
 
 .invoice-card:hover {
@@ -838,7 +1020,7 @@ const handleRemoveFile = (identifier: number | string) => {
   justify-content: center;
   margin-top: 8px;
   padding-top: 8px;
-  /* border-top: 1px solid var(--el-border-color-lighter); */
+
   h4 {
     margin: 0 0 12px 0;
     color: var(--el-text-color-primary);
@@ -916,6 +1098,28 @@ const handleRemoveFile = (identifier: number | string) => {
   color: var(--el-text-color-primary);
   flex: 1;
   word-break: break-all;
+}
+
+/* 备注文本样式 */
+.remarks-text {
+  display: inline-block;
+  max-width: 100%;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.remarks-text.truncated {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: help;
+  max-width: 180px;
+  border-bottom: 1px dotted var(--el-color-primary);
+  transition: all 0.2s ease;
+}
+
+.remarks-text.truncated:hover {
+  color: var(--el-color-primary);
 }
 
 /* 空状态 */
@@ -1062,5 +1266,27 @@ const handleRemoveFile = (identifier: number | string) => {
   .expand-icon {
     font-size: 9px;
   }
+}
+
+/* 自定义 el-text 状态样式 */
+:deep(.el-text) {
+  font-weight: 500;
+  font-size: 12px;
+}
+
+:deep(.el-text.el-text--success) {
+  color: #67c23a;
+}
+
+:deep(.el-text.el-text--warning) {
+  color: #e6a23c;
+}
+
+:deep(.el-text.el-text--danger) {
+  color: #f56c6c;
+}
+
+:deep(.el-text.el-text--info) {
+  color: #909399;
 }
 </style>

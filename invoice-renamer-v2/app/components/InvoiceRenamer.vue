@@ -123,9 +123,12 @@ interface InvoiceData {
   payee: string
   reviewer: string
   itemName: string
+  remarks: string
   file: File
   parseMethod: string
   fullText: string
+  parseStatus: 'success' | 'warning' | 'failed'
+  parseErrors?: string[]
 }
 
 interface NamingRule {
@@ -176,6 +179,7 @@ const invoiceFields = [
   { key: "payee", label: "收款人" },
   { key: "reviewer", label: "复核人" },
   { key: "itemName", label: "项目名称" },
+  { key: "remarks", label: "备注信息" },
 ]
 
 // 批量处理状态
@@ -275,21 +279,42 @@ const processSingleFile = async (file: any, isBatch: boolean) => {
       const parser = getPdfParser()
       const invoiceInfo = await parser.parseFile(file.raw)
 
+      // 评估解析质量
+      const qualityAssessment = assessParseQuality(invoiceInfo)
+      
       // 检查是否已存在同名文件
       const exists = invoiceData.value.some(
         (item) => item.fileName === invoiceInfo.fileName
       )
 
       if (!exists) {
-        invoiceData.value.push({
+        const invoiceDataWithStatus = {
           ...invoiceInfo,
           file: file.raw,
-        })
+          parseStatus: qualityAssessment.status,
+          parseErrors: qualityAssessment.errors
+        }
+        
+        invoiceData.value.push(invoiceDataWithStatus)
 
         if (isBatch) {
-          batchResults.value.success++
+          // 根据解析状态分别计数
+          if (qualityAssessment.status === 'failed') {
+            batchResults.value.error++
+            if (!batchResults.value.firstError) {
+              batchResults.value.firstError = `${file.name}: 解析质量差 - ${qualityAssessment.errors.join(', ')}`
+            }
+          } else {
+            batchResults.value.success++
+          }
         } else {
-          ElMessage.success(`成功解析文件: ${file.name}`)
+          if (qualityAssessment.status === 'success') {
+            ElMessage.success(`成功解析文件: ${file.name}`)
+          } else if (qualityAssessment.status === 'warning') {
+            ElMessage.warning(`文件 ${file.name} 解析完成，但存在问题: ${qualityAssessment.errors.join(', ')}`)
+          } else {
+            ElMessage.error(`文件 ${file.name} 解析质量差: ${qualityAssessment.errors.join(', ')}`)
+          }
         }
       } else {
         if (isBatch) {
@@ -364,12 +389,11 @@ const showBatchResults = () => {
   // 根据结果选择合适的提示类型
   if (actualError > 0) {
     ElMessage.warning(message)
-    // 如果有具体错误信息，额外显示
-    if (batchResults.value.firstError) {
-      setTimeout(() => {
-        ElMessage.error(`首个错误详情：${batchResults.value.firstError}`)
-      }, 1000)
-    }
+    // 显示错误详情
+    setTimeout(() => {
+      const errorDetail = batchResults.value.firstError || "部分文件解析失败，可能是文件质量问题或格式不支持"
+      ElMessage.error(`首个错误详情：${errorDetail}`)
+    }, 1000)
   } else if (actualSuccess > 0) {
     ElMessage.success(message)
   } else {
@@ -390,10 +414,15 @@ const parseAllFiles = async () => {
         console.log(`🔄 重新解析 ${item.fileName}...`)
         const parser = getPdfParser()
         const invoiceInfo = await parser.parseFile(item.file)
+        
+        // 评估解析质量
+        const qualityAssessment = assessParseQuality(invoiceInfo)
 
         newInvoiceData.push({
           ...invoiceInfo,
           file: item.file,
+          parseStatus: qualityAssessment.status,
+          parseErrors: qualityAssessment.errors
         })
       } catch (error: any) {
         ElMessage.error(`重新解析文件 ${item.fileName} 失败: ${error.message}`)
@@ -407,6 +436,58 @@ const parseAllFiles = async () => {
     ElMessage.error(`重新解析失败: ${error.message}`)
   } finally {
     parsing.value = false
+  }
+}
+
+// 解析质量评估函数
+const assessParseQuality = (invoiceInfo: any): { status: 'success' | 'warning' | 'failed', errors: string[] } => {
+  const errors: string[] = []
+  
+  // 检查关键字段是否为空或未识别
+  const criticalFields = [
+    { field: 'invoiceNumber', name: '发票号码' },
+    { field: 'invoiceDate', name: '开票日期' },
+    { field: 'totalAmount', name: '价税合计' }
+  ]
+  
+  const warningFields = [
+    { field: 'buyerName', name: '购买方名称' },
+    { field: 'sellerName', name: '销售方名称' }
+  ]
+  
+  let criticalMissing = 0
+  let warningMissing = 0
+  
+  // 检查关键字段
+  criticalFields.forEach(({ field, name }) => {
+    const value = invoiceInfo[field]
+    if (!value || value === '未识别' || value.trim() === '') {
+      errors.push(`${name}未识别`)
+      criticalMissing++
+    }
+  })
+  
+  // 检查警告字段
+  warningFields.forEach(({ field, name }) => {
+    const value = invoiceInfo[field]
+    if (!value || value === '未识别' || value.trim() === '') {
+      errors.push(`${name}未识别`)
+      warningMissing++
+    }
+  })
+  
+  // 检查文本质量
+  if (invoiceInfo.fullText && invoiceInfo.fullText.length < 100) {
+    errors.push('PDF文本内容过少，可能是扫描件')
+  }
+  
+  // 判断解析状态
+  if (criticalMissing >= 2) {
+    return { status: 'failed', errors }
+  } else if (criticalMissing > 0 || warningMissing >= 2 || errors.some(e => e.includes('扫描件'))) {
+    return { status: 'warning', errors }
+  } else {
+    return { status: 'success', errors: [] }
   }
 }
 
@@ -598,10 +679,63 @@ const updateNamingRules = (rules: NamingRule[]) => {
 }
 
 // 执行重命名
-const performRename = () => {
+const performRename = async () => {
   if (namingRules.value.length === 0) {
     ElMessage.warning("请先设置命名规则")
     return
+  }
+
+  // 检查解析状态，提醒用户有问题的文件
+  const problemFiles = invoiceData.value.filter(invoice => 
+    invoice.parseStatus === 'failed' || invoice.parseStatus === 'warning'
+  )
+
+  if (problemFiles.length > 0) {
+    const failedFiles = problemFiles.filter(f => f.parseStatus === 'failed')
+    const warningFiles = problemFiles.filter(f => f.parseStatus === 'warning')
+    
+    let message = '检测到以下文件存在解析问题：\n\n'
+    
+    if (failedFiles.length > 0) {
+      message += `❌ 解析失败的文件 (${failedFiles.length}个)：\n`
+      failedFiles.forEach(file => {
+        message += `• ${file.fileName}\n`
+        if (file.parseErrors && file.parseErrors.length > 0) {
+          message += `  问题：${file.parseErrors.join(', ')}\n`
+        }
+      })
+      message += '\n'
+    }
+    
+    if (warningFiles.length > 0) {
+      message += `⚠️ 解析有警告的文件 (${warningFiles.length}个)：\n`
+      warningFiles.forEach(file => {
+        message += `• ${file.fileName}\n`
+        if (file.parseErrors && file.parseErrors.length > 0) {
+          message += `  问题：${file.parseErrors.join(', ')}\n`
+        }
+      })
+      message += '\n'
+    }
+    
+    message += '建议：\n'
+    message += '• 检查PDF文件质量，确保文字清晰可读\n'
+    message += '• 手动核对重要信息（发票号码、金额等）\n'
+    message += '• 重命名后请仔细检查文件名是否正确\n\n'
+    message += '是否继续重命名？'
+
+    try {
+      await ElMessageBox.confirm(message, '发现解析问题', {
+        confirmButtonText: '继续重命名',
+        cancelButtonText: '取消',
+        type: 'warning',
+        customClass: 'parse-warning-dialog',
+        dangerouslyUseHTMLString: false
+      })
+    } catch {
+      // 用户取消
+      return
+    }
   }
 
   renaming.value = true

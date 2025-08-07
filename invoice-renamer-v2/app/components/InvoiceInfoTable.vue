@@ -230,6 +230,7 @@ interface InvoiceData {
   payee: string
   reviewer: string
   itemName: string
+  remarks: string
   file: File
   parseMethod: string
   fullText: string

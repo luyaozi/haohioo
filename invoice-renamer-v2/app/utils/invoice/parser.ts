@@ -21,6 +21,7 @@ export interface ParsedInvoiceInfo {
   payee: string
   reviewer: string
   itemName: string
+  remarks: string
   parseMethod: string
   fullText: string
 }
@@ -35,7 +36,7 @@ export class InvoiceInfoParser {
     console.log('🔍 开始解析发票信息，文本长度:', text.length)
     console.log('📄 原始文本预览:', text.substring(0, 500))
 
-    const info: any = {
+    const info: Omit<ParsedInvoiceInfo, "fileName" | "parseMethod" | "fullText"> = {
       invoiceNumber: "",
       invoiceDate: "",
       buyerName: "",
@@ -50,6 +51,7 @@ export class InvoiceInfoParser {
       payee: "",
       reviewer: "",
       itemName: "",
+      remarks: "",
     }
 
     // 使用正则表达式提取信息
@@ -102,6 +104,21 @@ export class InvoiceInfoParser {
               break
             case "totalAmountChinese":
               if (!info.totalAmountChinese) info.totalAmountChinese = value
+              break
+            case "remarks":
+              if (!info.remarks) {
+                // 过滤掉"\n备"、"\n注"、"备"、"注"等标签字符
+                const cleanedRemarks = value
+                  .replace(/\n备/g, '')
+                  .replace(/\n注/g, '')
+                  .replace(/^备$/g, '')
+                  .replace(/^注$/g, '')
+                  .replace(/^备\n注$/g, '')
+                  .trim()
+                
+                // 如果清理后的内容为空或只包含空白字符，则设为"无备注"
+                info.remarks = cleanedRemarks && cleanedRemarks.length > 0 ? cleanedRemarks : "无备注"
+              }
               break
           }
           break // 找到第一个匹配就跳出

@@ -40,102 +40,8 @@ export class PDFToWordParser {
     console.log(`🏗️ 创建 PDFToWordParser 实例: ${this.instanceId}`)
   }
 
-  // 发票信息提取的正则表达式模式
-  private invoicePatterns = {
-    // 发票号码
-    invoiceNumber: [
-      /发票号码[：:]\s*(\d+)/,
-      /票据号码[：:]\s*(\d+)/,
-      /No[：:]\s*(\d+)/,
-      /发票代码[：:]\s*(\d+)/,
-      /(\d{8,})/,
-    ],
-
-    // 金额
-    amount: [
-      /价税合计[：:]\s*[￥¥]?(\d+\.?\d*)/,
-      /合计金额[：:]\s*[￥¥]?(\d+\.?\d*)/,
-      /总金额[：:]\s*[￥¥]?(\d+\.?\d*)/,
-      /[￥¥]\s*(\d+\.?\d*)/,
-      /金额[：:]\s*[￥¥]?(\d+\.?\d*)/,
-      /合计[：:]\s*[￥¥]?(\d+\.?\d*)/,
-      /(\d+\.\d{2})元/,
-      /小写[：:]\s*[￥¥]?(\d+\.?\d*)/,
-    ],
-
-    // 购买方信息
-    buyer: [
-      /购买方[：:]?\s*名称[：:]?\s*([^\n\r]+)/,
-      /购买方[：:]?\s*([^\n\r]+?)(?=纳税人识别号|税号|地址|电话|开户行|账号|销售方|$)/,
-      /买方[：:]?\s*([^\n\r]+?)(?=纳税人识别号|税号|地址|电话|开户行|账号|卖方|销售方|$)/,
-      /客户[：:]?\s*([^\n\r]+?)(?=纳税人识别号|税号|地址|电话|开户行|账号|销售方|$)/,
-    ],
-
-    // 销售方信息
-    seller: [
-      /销售方[：:]?\s*名称[：:]?\s*([^\n\r]+)/,
-      /销售方[：:]?\s*([^\n\r]+?)(?=纳税人识别号|税号|地址|电话|开户行|账号|购买方|$)/,
-      /卖方[：:]?\s*([^\n\r]+?)(?=纳税人识别号|税号|地址|电话|开户行|账号|买方|购买方|$)/,
-      /开票方[：:]?\s*([^\n\r]+?)(?=纳税人识别号|税号|地址|电话|开户行|账号|购买方|$)/,
-    ],
-
-    // 开票日期
-    date: [
-      /开票日期[：:]\s*(\d{4}[-年]\d{1,2}[-月]\d{1,2}[日]?)/,
-      /日期[：:]\s*(\d{4}[-年]\d{1,2}[-月]\d{1,2}[日]?)/,
-      /(\d{4}年\d{1,2}月\d{1,2}日)/,
-      /(\d{4}-\d{1,2}-\d{1,2})/,
-    ],
-
-    // 税号
-    buyerTaxId: [
-      /购买方.*?纳税人识别号[：:]\s*([A-Z0-9]+)/,
-      /购买方.*?税号[：:]\s*([A-Z0-9]+)/,
-      /买方.*?纳税人识别号[：:]\s*([A-Z0-9]+)/,
-      /买方.*?税号[：:]\s*([A-Z0-9]+)/,
-    ],
-
-    sellerTaxId: [
-      /销售方.*?纳税人识别号[：:]\s*([A-Z0-9]+)/,
-      /销售方.*?税号[：:]\s*([A-Z0-9]+)/,
-      /卖方.*?纳税人识别号[：:]\s*([A-Z0-9]+)/,
-      /卖方.*?税号[：:]\s*([A-Z0-9]+)/,
-    ],
-
-    // 税额
-    taxAmount: [
-      /税额[：:]\s*[￥¥]?(\d+\.?\d*)/,
-      /增值税额[：:]\s*[￥¥]?(\d+\.?\d*)/,
-    ],
-
-    // 不含税金额
-    amountWithoutTax: [
-      /不含税金额[：:]\s*[￥¥]?(\d+\.?\d*)/,
-      /金额[：:]\s*[￥¥]?(\d+\.?\d*)/,
-    ],
-
-    // 开票人
-    drawer: [/开票人[：:]\s*([^\s\n\r]+)/, /制票人[：:]\s*([^\s\n\r]+)/],
-
-    // 收款人
-    payee: [/收款人[：:]\s*([^\s\n\r]+)/],
-
-    // 复核人
-    reviewer: [/复核人[：:]\s*([^\s\n\r]+)/, /审核人[：:]\s*([^\s\n\r]+)/],
-
-    // 项目名称
-    itemName: [
-      /(?:商品|服务|项目)名称[：:]\s*([^\n\r]+)/,
-      /货物或应税劳务.*?名称[：:]\s*([^\n\r]+)/,
-      /品名[：:]\s*([^\n\r]+)/,
-    ],
-
-    // 大写金额
-    totalAmountChinese: [
-      /大写[：:]\s*([^\n\r]+)/,
-      /价税合计.*?大写[：:]\s*([^\n\r]+)/,
-    ],
-  }
+  // 使用从patterns.ts导入的发票信息提取模式
+  private invoicePatterns = invoicePatterns
 
   /**
    * 初始化 PDF.js
@@ -297,6 +203,7 @@ export class PDFToWordParser {
       payee: "",
       reviewer: "",
       itemName: "",
+      remarks: "",
     }
 
     // 使用正则表达式提取信息
@@ -308,46 +215,61 @@ export class PDFToWordParser {
 
           switch (key) {
             case "invoiceNumber":
-              info.invoiceNumber = value
+              if (!info.invoiceNumber) info.invoiceNumber = value
               break
-            case "date":
-              info.invoiceDate = value
+            case "invoiceDate":
+              if (!info.invoiceDate) info.invoiceDate = value
               break
-            case "buyer":
-              info.buyerName = value
+            case "buyerName":
+              if (!info.buyerName) info.buyerName = value
               break
-            case "seller":
-              info.sellerName = value
+            case "sellerName":
+              if (!info.sellerName) info.sellerName = value
               break
-            case "amount":
-              info.totalAmount = value
+            case "totalAmount":
+              if (!info.totalAmount) info.totalAmount = value
               break
             case "buyerTaxId":
-              info.buyerTaxId = value
+              if (!info.buyerTaxId) info.buyerTaxId = value
               break
             case "sellerTaxId":
-              info.sellerTaxId = value
+              if (!info.sellerTaxId) info.sellerTaxId = value
               break
             case "taxAmount":
-              info.taxAmount = value
+              if (!info.taxAmount) info.taxAmount = value
               break
             case "amountWithoutTax":
-              info.amountWithoutTax = value
+              if (!info.amountWithoutTax) info.amountWithoutTax = value
               break
             case "drawer":
-              info.drawer = value
+              if (!info.drawer) info.drawer = value
               break
             case "payee":
-              info.payee = value
+              if (!info.payee) info.payee = value
               break
             case "reviewer":
-              info.reviewer = value
+              if (!info.reviewer) info.reviewer = value
               break
             case "itemName":
-              info.itemName = value
+              if (!info.itemName) info.itemName = value
               break
             case "totalAmountChinese":
-              info.totalAmountChinese = value
+              if (!info.totalAmountChinese) info.totalAmountChinese = value
+              break
+            case "remarks":
+              if (!info.remarks) {
+                // 过滤掉"\n备"、"\n注"、"备"、"注"等标签字符
+                const cleanedRemarks = value
+                  .replace(/\n备/g, '')
+                  .replace(/\n注/g, '')
+                  .replace(/^备$/g, '')
+                  .replace(/^注$/g, '')
+                  .replace(/^备\n注$/g, '')
+                  .trim()
+                
+                // 如果清理后的内容为空或只包含空白字符，则设为"无备注"
+                info.remarks = cleanedRemarks && cleanedRemarks.length > 0 ? cleanedRemarks : "无备注"
+              }
               break
           }
           break

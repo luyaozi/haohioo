@@ -174,4 +174,46 @@ export class TextProcessor {
     console.log('提取到的项目名称:', itemName)
     return itemName
   }
+
+  /**
+   * 提取备注信息
+   * 从发票fullText中提取"（小写）¥数字\n"之后到"\n开票人"之前的内容
+   * 并过滤掉其中的"\n备"和"\n注"字符
+   * @param fullText 发票的完整文本内容
+   * @returns 提取的备注信息，如果没有找到则返回"无备注"
+   */
+  static extractRemarks(fullText: string): string {
+    if (!fullText) return "无备注"
+    
+    try {
+      // 查找"（小写）¥数字\n"之后的内容，直到"\n开票人"之前
+      const startPattern = /（\s*小\s*写\s*）\s*¥[\d.]+\n/
+      const endPattern = /\n开票人/
+      
+      const startMatch = fullText.match(startPattern)
+      const endMatch = fullText.match(endPattern)
+      
+      if (startMatch && endMatch) {
+        const startIndex = startMatch.index! + startMatch[0].length
+        const endIndex = endMatch.index!
+        
+        if (startIndex < endIndex) {
+          let remarks = fullText.substring(startIndex, endIndex)
+          
+          // 过滤掉"\n备"和"\n注"
+          remarks = remarks.replace(/\n备/g, '').replace(/\n注/g, '')
+          
+          // 清理多余的换行符和空格，但保留有意义的内容
+          remarks = remarks.trim()
+          
+          return remarks || "无备注"
+        }
+      }
+      
+      return "无备注"
+    } catch (error) {
+      console.error('提取备注信息时出错:', error)
+      return "备注提取失败"
+    }
+  }
 }
