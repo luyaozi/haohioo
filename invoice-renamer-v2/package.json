@@ -14,12 +14,14 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "dev": "nuxi dev",
-    "build": "nuxi build",
+    "build": "nuxi build && node scripts/post-build.js",
+    "build:only": "nuxi build",
+    "postinstall": "node scripts/post-build.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "nuxi preview",
     "start": "node .output/server/index.mjs",
-    "generate": "nuxi generate",
+    "generate": "nuxi generate && node scripts/post-build.js",
     "prepare": "nuxi prepare",
     "typecheck": "vue-tsc --noEmit"
   },
