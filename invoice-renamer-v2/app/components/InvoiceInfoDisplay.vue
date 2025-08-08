@@ -262,10 +262,10 @@
               class="invoice-preview"
               @click="handlePreviewClick(invoice.file)"
             >
-              <div class="preview-placeholder">
+              <!-- <div class="preview-placeholder">
                 <el-icon class="preview-icon"><Document /></el-icon>
                 <span class="preview-text">点击预览</span>
-              </div>
+              </div> -->
               <div class="preview-overlay">
                 <el-icon class="zoom-icon"><ZoomIn /></el-icon>
               </div>
@@ -396,9 +396,13 @@
                       :show-after="500"
                       effect="dark"
                     >
-                      <span class="remarks-text truncated">{{ invoice.remarks }}</span>
+                      <span class="remarks-text truncated">{{
+                        invoice.remarks
+                      }}</span>
                     </el-tooltip>
-                    <span v-else class="remarks-text">{{ invoice.remarks || "无备注" }}</span>
+                    <span v-else class="remarks-text">{{
+                      invoice.remarks || "无备注"
+                    }}</span>
                   </div>
                 </div>
 
@@ -602,9 +606,9 @@ const shouldShowRemarksTooltip = (remarks: string) => {
   if (!remarks || remarks === "无备注") {
     return false
   }
-  
+
   // 如果备注包含换行符或长度超过25个字符，则显示tooltip
-  return remarks.includes('\n') || remarks.length > 25
+  return remarks.includes("\n") || remarks.length > 25
 }
 </script>
 
@@ -891,11 +895,13 @@ const shouldShowRemarksTooltip = (remarks: string) => {
 .invoice-preview {
   position: relative;
   height: 160px;
-  background: linear-gradient(
-    135deg,
-    var(--el-color-primary-light-9),
-    var(--el-color-primary-light-8)
-  );
+  /* 背景图片 */
+  background-image: url("/img/fapiao.png");
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: var(--el-color-primary-light-9);
+  border-bottom: 1px solid var(--el-color-primary-light-9);
   display: flex;
   align-items: center;
   justify-content: center;
