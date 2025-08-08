@@ -15,7 +15,7 @@ const defaultSEOConfig: SEOConfig = {
   title: '智能发票重命名工具 - 免费在线PDF发票批量重命名',
   description: '免费在线PDF发票重命名工具，智能提取发票信息，支持批量重命名，自定义命名规则，本地处理保护隐私。让文件管理变得简单高效。',
   keywords: ['发票重命名', 'PDF重命名', '发票管理', '批量重命名', '发票工具', '文件管理'],
-  url: 'https://invoice-renamer.com',
+  url: 'https://fapiao.haohio.xyz',
   image: '/favicon.ico',
   type: 'website',
   siteName: '智能发票重命名工具',

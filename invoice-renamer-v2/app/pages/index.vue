@@ -7,7 +7,7 @@ import {
 
 // 页面SEO配置
 const seoConfig = generateSEO({
-  url: "https://invoice-renamer.com",
+  url: "https://fapiao.haohio.xyz",
 })
 
 // 设置页面头部信息

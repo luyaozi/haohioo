@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /seo-test
+Allow: /*.css
+Allow: /*.js
+Allow: /*.png
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.gif
+Allow: /*.svg
+Allow: /*.ico
+
+Disallow: /api/
+Disallow: /.nuxt/
+Disallow: /.output/
+
+Sitemap: https://fapiao.haohio.xyz/sitemap.xml
+Crawl-delay: 1
