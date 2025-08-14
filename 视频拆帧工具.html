@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>视频拆帧工具</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+        color: #fff;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 2.8rem;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        max-width: 600px;
+        margin: 0 auto;
+      }
+
+      .app-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 30px;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .upload-section {
+        flex: 1;
+        min-width: 300px;
+      }
+
+      .preview-section {
+        flex: 1;
+        min-width: 300px;
+      }
+
+      .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .section-title i {
+        color: #4da0ff;
+      }
+
+      .upload-area {
+        border: 3px dashed rgba(255, 255, 255, 0.3);
+        border-radius: 15px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 25px;
+      }
+
+      .upload-area:hover {
+        border-color: #4da0ff;
+        background: rgba(77, 160, 255, 0.1);
+      }
+
+      .upload-area i {
+        font-size: 4rem;
+        color: #4da0ff;
+        margin-bottom: 15px;
+      }
+
+      .upload-area h3 {
+        font-size: 1.5rem;
+        margin-bottom: 10px;
+      }
+
+      .upload-area p {
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 15px;
+      }
+
+      .btn {
+        background: linear-gradient(to right, #4da0ff, #5d5fef);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 50px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 15px rgba(77, 160, 255, 0.3);
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(77, 160, 255, 0.5);
+      }
+
+      .btn:disabled {
+        background: #555;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      .settings {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+      }
+
+      .setting-item {
+        margin-bottom: 15px;
+      }
+
+      .setting-item label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      .setting-item input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: none;
+        background: rgba(0, 0, 0, 0.3);
+        color: white;
+      }
+
+      .setting-item input:focus {
+        outline: 2px solid #4da0ff;
+      }
+
+      .preview-box {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 15px;
+        overflow: hidden;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 25px;
+      }
+
+      #videoPreview {
+        max-width: 100%;
+        max-height: 100%;
+        display: none;
+      }
+
+      .video-placeholder {
+        text-align: center;
+        padding: 30px;
+      }
+
+      .video-placeholder i {
+        font-size: 5rem;
+        color: rgba(255, 255, 255, 0.2);
+        margin-bottom: 15px;
+      }
+
+      .progress-container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+      }
+
+      .progress-bar {
+        height: 15px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        margin: 15px 0;
+        overflow: hidden;
+      }
+
+      .progress {
+        height: 100%;
+        background: linear-gradient(to right, #4da0ff, #5d5fef);
+        border-radius: 10px;
+        width: 0%;
+        transition: width 0.3s ease;
+      }
+
+      .results {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 20px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 15px;
+      }
+
+      .frame-item {
+        border-radius: 8px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        aspect-ratio: 16/9;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .frame-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+      }
+
+      .frame-item:hover img {
+        transform: scale(1.05);
+      }
+
+      .frame-number {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 0.8rem;
+      }
+
+      .no-frames {
+        text-align: center;
+        padding: 20px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+      }
+
+      .footer {
+        text-align: center;
+        margin-top: 40px;
+        padding: 20px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      @media (max-width: 768px) {
+        .app-container {
+          flex-direction: column;
+        }
+
+        h1 {
+          font-size: 2.2rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1><i class="fas fa-film"></i> 视频拆帧工具</h1>
+        <p class="subtitle">
+          上传视频文件，提取每一帧为独立的图片文件。支持自定义帧率、图片质量等参数。
+        </p>
+      </header>
+
+      <div class="app-container">
+        <div class="upload-section">
+          <div class="section-title">
+            <i class="fas fa-upload"></i> 上传与设置
+          </div>
+
+          <div class="upload-area" id="uploadArea">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <h3>点击上传视频文件</h3>
+            <p>支持MP4, WebM, OGG等格式，最大文件大小100MB</p>
+            <button class="btn">
+              <i class="fas fa-file-video"></i> 选择视频文件
+            </button>
+            <input
+              type="file"
+              id="fileInput"
+              accept="video/*"
+              style="display: none"
+            />
+          </div>
+
+          <div class="settings">
+            <div class="setting-item">
+              <label for="frameRate"
+                ><i class="fas fa-tachometer-alt"></i> 每秒帧数 (FPS)</label
+              >
+              <input
+                type="number"
+                id="frameRate"
+                min="0.1"
+                max="60"
+                step="0.1"
+                value="1"
+              />
+            </div>
+
+            <div class="setting-item">
+              <label for="startTime"
+                ><i class="fas fa-hourglass-start"></i> 开始时间 (秒)</label
+              >
+              <input type="number" id="startTime" min="0" value="0" />
+            </div>
+
+            <div class="setting-item">
+              <label for="endTime"
+                ><i class="fas fa-hourglass-end"></i> 结束时间 (秒)</label
+              >
+              <input type="number" id="endTime" min="0" value="10" />
+            </div>
+
+            <div class="setting-item">
+              <label for="quality"
+                ><i class="fas fa-star"></i> 图片质量 (0-1)</label
+              >
+              <input
+                type="number"
+                id="quality"
+                min="0.1"
+                max="1"
+                step="0.1"
+                value="0.9"
+              />
+            </div>
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn" id="extractBtn" disabled>
+              <i class="fas fa-cogs"></i> 开始拆帧
+            </button>
+            <button class="btn" id="downloadBtn" disabled>
+              <i class="fas fa-download"></i> 下载全部帧
+            </button>
+            <button class="btn" id="resetBtn">
+              <i class="fas fa-redo"></i> 重置
+            </button>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="section-title">
+            <i class="fas fa-play-circle"></i> 预览与结果
+          </div>
+
+          <div class="preview-box">
+            <video id="videoPreview" controls></video>
+            <div class="video-placeholder" id="videoPlaceholder">
+              <i class="fas fa-video"></i>
+              <p>视频预览区域</p>
+            </div>
+          </div>
+
+          <div class="progress-container">
+            <p>处理进度: <span id="progressText">0%</span></p>
+            <div class="progress-bar">
+              <div class="progress" id="progressBar"></div>
+            </div>
+            <p id="statusText">准备就绪</p>
+          </div>
+
+          <div class="results">
+            <div class="section-title">
+              <i class="fas fa-images"></i> 提取的帧 (<span id="frameCount"
+                >0</span
+              >)
+            </div>
+
+            <div class="results-grid" id="resultsGrid">
+              <div class="no-frames">
+                <i class="fas fa-box-open"></i>
+                <p>提取的帧将显示在这里</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>视频拆帧工具 v1.0 &copy; 2023 | 使用HTML5 Canvas技术实现</p>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const fileInput = document.getElementById("fileInput")
+        const uploadArea = document.getElementById("uploadArea")
+        const videoPreview = document.getElementById("videoPreview")
+        const videoPlaceholder = document.getElementById("videoPlaceholder")
+        const extractBtn = document.getElementById("extractBtn")
+        const downloadBtn = document.getElementById("downloadBtn")
+        const resetBtn = document.getElementById("resetBtn")
+        const resultsGrid = document.getElementById("resultsGrid")
+        const progressBar = document.getElementById("progressBar")
+        const progressText = document.getElementById("progressText")
+        const statusText = document.getElementById("statusText")
+        const frameCount = document.getElementById("frameCount")
+
+        let videoFile = null
+        let frames = []
+
+        // 上传区域点击事件
+        uploadArea.addEventListener("click", () => {
+          fileInput.click()
+        })
+
+        // 文件选择事件
+        fileInput.addEventListener("change", function (e) {
+          if (this.files && this.files[0]) {
+            videoFile = this.files[0]
+
+            // 检查文件类型
+            if (!videoFile.type.match("video.*")) {
+              alert("请选择有效的视频文件！")
+              return
+            }
+
+            // 检查文件大小
+            if (videoFile.size > 100 * 1024 * 1024) {
+              alert("文件大小不能超过100MB！")
+              return
+            }
+
+            // 创建视频预览
+            const videoURL = URL.createObjectURL(videoFile)
+            videoPreview.src = videoURL
+            videoPreview.style.display = "block"
+            videoPlaceholder.style.display = "none"
+
+            // 启用提取按钮
+            extractBtn.disabled = false
+            statusText.textContent = "视频已加载，可以开始拆帧"
+
+            // 设置视频时长
+            videoPreview.addEventListener("loadedmetadata", function () {
+              const duration = Math.floor(videoPreview.duration)
+              document.getElementById("endTime").value = Math.min(30, duration)
+              document.getElementById("endTime").max = duration
+            })
+          }
+        })
+
+        // 提取帧按钮事件
+        extractBtn.addEventListener("click", extractFrames)
+
+        // 重置按钮事件
+        resetBtn.addEventListener("click", resetApp)
+
+        // 下载按钮事件
+        downloadBtn.addEventListener("click", downloadAllFrames)
+
+        // 提取帧函数
+        function extractFrames() {
+          if (!videoFile) return
+
+          // 获取设置参数
+          const frameRate =
+            parseFloat(document.getElementById("frameRate").value) || 1
+          const startTime =
+            parseFloat(document.getElementById("startTime").value) || 0
+          let endTime =
+            parseFloat(document.getElementById("endTime").value) || 10
+          const quality =
+            parseFloat(document.getElementById("quality").value) || 0.9
+
+          // 验证参数
+          if (frameRate <= 0 || frameRate > 60) {
+            alert("帧率必须在0.1到60之间")
+            return
+          }
+
+          if (startTime < 0) {
+            alert("开始时间不能为负数")
+            return
+          }
+
+          if (endTime <= startTime) {
+            alert("结束时间必须大于开始时间")
+            return
+          }
+
+          // 确保结束时间不超过视频时长
+          const duration = videoPreview.duration
+          if (endTime > duration) {
+            endTime = duration
+            document.getElementById("endTime").value = endTime
+          }
+
+          // 计算帧数和间隔
+          const totalFrames = Math.floor((endTime - startTime) * frameRate)
+          const frameInterval = 1 / frameRate
+
+          if (totalFrames > 1000) {
+            if (
+              !confirm(
+                `这将提取 ${totalFrames} 帧，可能需要较长时间。确定要继续吗？`
+              )
+            ) {
+              return
+            }
+          }
+
+          // 重置结果区域
+          resultsGrid.innerHTML = ""
+          frames = []
+          frameCount.textContent = "0"
+          downloadBtn.disabled = true
+
+          // 创建Canvas用于提取帧
+          const canvas = document.createElement("canvas")
+          const ctx = canvas.getContext("2d")
+
+          // 设置进度
+          let currentFrame = 0
+          progressBar.style.width = "0%"
+          progressText.textContent = "0%"
+          statusText.textContent = "开始提取帧..."
+          extractBtn.disabled = true
+
+          // 开始提取帧
+          function captureFrame(time) {
+            if (time > endTime) {
+              // 完成
+              statusText.textContent = `完成！共提取了 ${frames.length} 帧`
+              extractBtn.disabled = false
+              downloadBtn.disabled = false
+              return
+            }
+
+            videoPreview.currentTime = time
+          }
+
+          // 当视频跳转到指定时间时
+          videoPreview.onseeked = function () {
+            // 设置Canvas尺寸
+            canvas.width = videoPreview.videoWidth
+            canvas.height = videoPreview.videoHeight
+
+            // 绘制当前帧到Canvas
+            ctx.drawImage(videoPreview, 0, 0, canvas.width, canvas.height)
+
+            // 将Canvas转为Data URL
+            const dataURL = canvas.toDataURL("image/jpeg", quality)
+
+            // 创建帧对象
+            const frame = {
+              time: videoPreview.currentTime,
+              dataURL: dataURL,
+            }
+
+            frames.push(frame)
+
+            // 更新UI
+            const frameItem = document.createElement("div")
+            frameItem.className = "frame-item"
+
+            const img = document.createElement("img")
+            img.src = dataURL
+
+            const frameNumber = document.createElement("div")
+            frameNumber.className = "frame-number"
+            frameNumber.textContent = `#${frames.length}`
+
+            frameItem.appendChild(img)
+            frameItem.appendChild(frameNumber)
+
+            // 添加下载功能
+            frameItem.addEventListener("click", function () {
+              downloadImage(dataURL, `frame_${frames.length}.jpg`)
+            })
+
+            resultsGrid.appendChild(frameItem)
+            frameCount.textContent = frames.length
+
+            // 更新进度
+            currentFrame++
+            const progress = Math.floor((currentFrame / totalFrames) * 100)
+            progressBar.style.width = `${progress}%`
+            progressText.textContent = `${progress}%`
+            statusText.textContent = `提取中: ${currentFrame}/${totalFrames} 帧 (${videoPreview.currentTime.toFixed(1)}s)`
+
+            // 捕获下一帧
+            const nextTime = startTime + currentFrame * frameInterval
+            captureFrame(nextTime)
+          }
+
+          // 开始捕获第一帧
+          captureFrame(startTime)
+        }
+
+        // 下载单张图片
+        function downloadImage(dataURL, filename) {
+          const link = document.createElement("a")
+          link.href = dataURL
+          link.download = filename
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }
+
+        // 下载所有帧
+        function downloadAllFrames() {
+          if (frames.length === 0) return
+
+          // 创建ZIP下载（简化版，实际应用中应使用JSZip库）
+          alert(
+            "在实际应用中，这里会使用JSZip库将所有帧打包下载。\n\n在此演示中，将下载第一帧作为示例。"
+          )
+          downloadImage(frames[0].dataURL, `frame_1.jpg`)
+        }
+
+        // 重置应用
+        function resetApp() {
+          videoPreview.src = ""
+          videoPreview.style.display = "none"
+          videoPlaceholder.style.display = "flex"
+
+          resultsGrid.innerHTML =
+            '<div class="no-frames"><i class="fas fa-box-open"></i><p>提取的帧将显示在这里</p></div>'
+          frameCount.textContent = "0"
+
+          progressBar.style.width = "0%"
+          progressText.textContent = "0%"
+          statusText.textContent = "准备就绪"
+
+          fileInput.value = ""
+          videoFile = null
+          frames = []
+
+          extractBtn.disabled = true
+          downloadBtn.disabled = true
+        }
+      })
+    </script>
+  </body>
+</html>
