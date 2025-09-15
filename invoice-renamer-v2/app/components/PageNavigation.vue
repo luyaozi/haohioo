@@ -25,14 +25,12 @@ defineProps<Props>()
 <style lang="scss" scoped>
 /* 页面导航样式 */
 .page-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  position: sticky; /* 避免覆盖头部 */
+  top: 0; /* 滚动到顶部时吸附 */
+  z-index: 20;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   padding: 12px 0;
 }
 
@@ -79,34 +77,9 @@ defineProps<Props>()
   }
 }
 
-/* 响应式设计 */
 @media (max-width: 768px) {
-  .nav-content {
-    padding: 0 16px;
-  }
-
-  .nav-home,
-  .nav-current {
-    padding: 6px 12px;
-    font-size: 14px;
-
-    .nav-icon {
-      font-size: 14px;
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .nav-home span:last-child,
-  .nav-current span:last-child {
-    display: none;
-  }
-
-  .nav-home,
-  .nav-current {
-    padding: 8px;
-    min-width: 40px;
-    justify-content: center;
-  }
+  .nav-content { padding: 0 12px; }
+  .nav-home { padding: 6px 12px; font-size: 14px; }
+  .nav-current { font-size: 14px; }
 }
 </style>

@@ -10,12 +10,13 @@ export default defineNuxtConfig({
   ],
 
   devtools: {
-    enabled: true,
+    enabled: process.env.NODE_ENV !== 'production',
   },
 
   app: {
     // head
     head: {
+      htmlAttrs: { lang: 'zh-CN' },
       title: "智能发票重命名工具 - 免费在线PDF发票批量重命名",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -53,7 +54,7 @@ export default defineNuxtConfig({
         },
         {
           property: "og:image",
-          content: "/og-image.png",
+          content: "/img/fapiao.png",
         },
         {
           property: "og:url",
@@ -79,7 +80,7 @@ export default defineNuxtConfig({
         },
         {
           name: "twitter:image",
-          content: "/og-image.png",
+          content: "/img/fapiao.png",
         },
         // 移动端优化
         {
@@ -110,24 +111,9 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+        { rel: "apple-touch-icon", href: "/apple-touch-icon.svg" },
         { rel: "canonical", href: "https://fapiao.haohio.xyz" },
-        {
-          rel: "apple-touch-icon",
-          sizes: "180x180",
-          href: "/apple-touch-icon.png",
-        },
-        {
-          rel: "icon",
-          type: "image/png",
-          sizes: "32x32",
-          href: "/favicon-32x32.png",
-        },
-        {
-          rel: "icon",
-          type: "image/png",
-          sizes: "16x16",
-          href: "/favicon-16x16.png",
-        },
         { rel: "manifest", href: "/site.webmanifest" },
       ],
       script: [

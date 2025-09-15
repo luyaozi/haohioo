@@ -9,7 +9,8 @@ import {
 const seoConfig = generateSEO({
   url: "https://fapiao.haohio.xyz/invoice-renamer",
   title: "智能发票重命名工具 - 批量重命名PDF发票文件",
-  description: "免费在线PDF发票批量重命名工具，智能提取发票信息并按规则重命名，本地处理保护隐私。"
+  description:
+    "免费在线PDF发票批量重命名工具，智能提取发票信息并按规则重命名，本地处理保护隐私。",
 })
 
 // 设置页面头部信息
@@ -23,16 +24,15 @@ useHead({
     },
   ],
 })
-
 </script>
 
 <template>
   <div class="invoice-app">
     <!-- 页面导航 -->
-    <PageNavigation 
+    <!-- <PageNavigation 
       current-page-icon="📄" 
       current-page-title="发票重命名工具" 
-    />
+    /> -->
 
     <!-- 应用头部 -->
     <header class="app-header" role="banner">
@@ -58,7 +58,7 @@ useHead({
           </p>
         </div>
       </div>
-      <div class="header-decoration" aria-hidden="true"></div>
+      <div class="header-decoration" aria-hidden="true" />
     </header>
 
     <!-- 主要内容区域 -->
@@ -86,7 +86,7 @@ useHead({
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
-  padding-top: 60px; /* 为固定导航留出空间 */
+  /* 移除固定导航的预留空间 */
 }
 
 .app-header {
@@ -105,7 +105,6 @@ useHead({
 
 .header-content {
   position: relative;
-  z-index: 2;
   margin: 0 auto;
 }
 
@@ -197,31 +196,15 @@ useHead({
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .nav-content {
-    padding: 0 15px;
-  }
-
-  .nav-home {
-    padding: 6px 12px;
-    font-size: 14px;
-  }
-
-  .nav-current {
-    font-size: 14px;
-  }
-
   .app-header {
     padding: 30px 15px 50px;
   }
-
   .app-title {
     font-size: 28px;
   }
-
   .logo-icon {
     font-size: 36px;
   }
-
   .app-main {
     padding: 30px 15px 40px;
   }

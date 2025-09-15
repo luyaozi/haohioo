@@ -9,7 +9,8 @@ import {
 const seoConfig = generateSEO({
   url: "https://fapiao.haohio.xyz/video-frame-extractor",
   title: "视频拆帧工具 - 从视频中提取关键帧",
-  description: "免费在线视频拆帧工具，支持多种视频格式，快速生成图片序列，本地处理保护隐私。"
+  description:
+    "免费在线视频拆帧工具，支持多种视频格式，快速生成图片序列，本地处理保护隐私。",
 })
 
 // 设置页面头部信息
@@ -23,16 +24,15 @@ useHead({
     },
   ],
 })
-
 </script>
 
 <template>
   <div class="video-app">
     <!-- 页面导航 -->
-    <PageNavigation 
+    <!-- <PageNavigation 
       current-page-icon="🎬" 
       current-page-title="视频拆帧工具" 
-    />
+    /> -->
 
     <!-- 应用头部 -->
     <header class="app-header" role="banner">
@@ -58,7 +58,7 @@ useHead({
           </p>
         </div>
       </div>
-      <div class="header-decoration" aria-hidden="true"></div>
+      <div class="header-decoration" aria-hidden="true" />
     </header>
 
     <!-- 主要内容区域 -->
@@ -79,7 +79,7 @@ useHead({
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
-  padding-top: 60px; /* 为固定导航留出空间 */
+  /* 删除固定导航预留空间 */
 }
 
 .app-header {

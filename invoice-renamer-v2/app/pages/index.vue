@@ -102,7 +102,7 @@ const comingSoonTools = [
           我们致力于为用户提供高质量的在线工具，帮助您更高效地处理日常工作任务。所有工具均在本地运行，确保您的数据安全。
         </p>
       </div>
-      <div class="header-decoration" aria-hidden="true"></div>
+      <div class="header-decoration" aria-hidden="true" />
     </header>
 
     <!-- 主要内容区域 -->
@@ -368,7 +368,7 @@ const comingSoonTools = [
     font-weight: 600;
     margin-bottom: 10px;
     color: #4a5568;
-    text-align: center;
+    //  text-align: center;
   }
 
   .features-list {
