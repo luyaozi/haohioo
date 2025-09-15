@@ -30,7 +30,8 @@
     "element-plus": "^2.10.5",
     "jszip": "^3.10.1",
     "pdfjs-dist": "^3.11.174",
-    "sortablejs": "^1.15.6"
+    "sortablejs": "^1.15.6",
+    "@popperjs/core": "npm:@sxzz/popperjs-es@^2.11.7"
   },
   "devDependencies": {
     "@element-plus/nuxt": "^1.1.4",
